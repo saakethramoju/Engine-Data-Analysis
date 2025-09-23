@@ -7,8 +7,11 @@ from scipy.integrate import cumulative_trapezoid
 
 
 throat_area         = 0.003903218   # m^2
+cstar_eff           = 1
 ambient_pressure    = 14.67         # psia
 expansion_ratio     = 4.73
+contraction_ratio   = 4.3
+fac                 = True          # True if finite area combustors
 frozen              = 1
 frozen_from_throat  = 1
 start_time          = 22           # s
@@ -16,8 +19,8 @@ end_time            = 27           # s
 guess_mr_bracket    = [0.5, 3]
 start_fuel_volume   = 56            # L
 fuel_density        = 800           # kg/m^3        
-csv_filename        = "2025-09-13-vespula-abl-hotfire.csv"
-chpt_sensor_name    = "CHPT2(psi)"
+csv_filename        = "Test Data Parsing/2025-09-13-vespula-abl-hotfire.csv"
+chpt_sensor_name    = "CHPT1(psi)"
 thrust_sensor_name  = "Thrust(lbf)"
 
 
@@ -42,10 +45,16 @@ chpt    = chpt[mask].to_numpy()
 thrust  = thrust[mask].to_numpy()
 
 
-rocket = CEA_Obj(oxName='LOX', fuelName='RP-1', temperature_units='degK', 
-                cstar_units='m/sec', specific_heat_units='kJ/kg degK', 
-                sonic_velocity_units='m/s', enthalpy_units='J/kg', 
-                density_units='kg/m^3')
+if fac:
+    rocket = CEA_Obj(oxName='LOX', fuelName='RP-1', temperature_units='degK', 
+                    cstar_units='m/sec', specific_heat_units='kJ/kg degK', 
+                    sonic_velocity_units='m/s', enthalpy_units='J/kg', 
+                    density_units='kg/m^3')
+else:
+    rocket = CEA_Obj(oxName='LOX', fuelName='RP-1', temperature_units='degK', 
+                    cstar_units='m/sec', specific_heat_units='kJ/kg degK', 
+                    sonic_velocity_units='m/s', enthalpy_units='J/kg', 
+                    density_units='kg/m^3', fac_CR=contraction_ratio)
 
 def get_mdot(Pc, mr, At, frozen = 0, frozen_from_throat = 0, cea_obj: CEA_Obj = rocket):
     Pt = Pc / cea_obj.get_Throat_PcOvPe(Pc, mr)
